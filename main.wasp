@@ -1,0 +1,108 @@
+app sd_1904_slots777 {
+  wasp: {
+    version: "^0.13.0"
+  },
+  title: "sd_1904_slots777",
+  client: {
+    rootComponent: import { Layout } from "@src/Layout.jsx",
+  },
+  db: {
+    prisma: {
+      clientPreviewFeatures: ["extendedWhereUnique"]
+    }
+  },
+  auth: {
+    userEntity: User,
+    methods: {
+      usernameAndPassword: {}
+    },
+    onAuthFailedRedirectTo: "/login",
+    onAuthSucceededRedirectTo: "/"
+  }
+}
+
+route LoginRoute { path: "/login", to: LoginPage }
+page LoginPage {
+  component: import Login from "@src/pages/auth/Login.jsx"
+}
+route SignupRoute { path: "/signup", to: SignupPage }
+page SignupPage {
+  component: import Signup from "@src/pages/auth/Signup.jsx"
+}
+
+entity User {=psl
+    id           Int           @id @default(autoincrement())
+    username     String        @unique
+    password     String
+    balance      Float         @default(0.0)
+    transactions Transaction[]
+    plays        Play[]
+psl=}
+
+entity Transaction {=psl
+    id     Int   @id @default(autoincrement())
+    amount Float
+    user   User  @relation(fields: [userId], references: [id])
+    userId Int
+psl=}
+
+entity Play {=psl
+    id     Int     @id @default(autoincrement())
+    amount Float
+    win    Boolean
+    user   User    @relation(fields: [userId], references: [id])
+    userId Int
+psl=}
+
+action deposit {
+  fn: import { deposit } from "@src/actions.js",
+  entities: [User, Transaction]
+}
+
+action withdraw {
+  fn: import { withdraw } from "@src/actions.js",
+  entities: [User, Transaction]
+}
+
+action play {
+  fn: import { play } from "@src/actions.js",
+  entities: [User, Play]
+}
+
+action adminApproveWithdrawal {
+  fn: import { adminApproveWithdrawal } from "@src/actions.js",
+  entities: [Transaction]
+}
+
+query getUser {
+  fn: import { getUser } from "@src/queries.js",
+  entities: [User]
+}
+
+query getTransactions {
+  fn: import { getTransactions } from "@src/queries.js",
+  entities: [Transaction]
+}
+
+query getPlays {
+  fn: import { getPlays } from "@src/queries.js",
+  entities: [Play]
+}
+
+route LandingRoute { path: "/", to: LandingPage }
+page LandingPage {
+  component: import LandingPage from "@src/pages/Landing.jsx",
+  authRequired: false
+}
+
+route DashboardRoute { path: "/dashboard", to: DashboardPage }
+page DashboardPage {
+  component: import DashboardPage from "@src/pages/Dashboard.jsx",
+  authRequired: true
+}
+
+route SlotMachineRoute { path: "/slot-machine", to: SlotMachinePage }
+page SlotMachinePage {
+  component: import SlotMachinePage from "@src/pages/SlotMachine.jsx",
+  authRequired: false
+}
